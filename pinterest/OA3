@@ -1,0 +1,81 @@
+import json
+import urllib
+import urllib2
+import re
+
+
+# TODO: Generate access token at https://developers.pinterest.com/tools/access_token/
+ACCESS_TOKEN = "AWmDQMgAfbnGKlH84fCs00_JK1pzFIxBFdpVae9DmR62lCAuiwAAAAA"
+path = "/v1/boards/785174584973334839/pins"
+
+BASE_API = "https://api.pinterest.com"
+
+NLTK_STOPWORDS = ['all', 'just', 'being', 'over', 'both', 'through', 'yourselves', 'its', 'before', 'herself', 'had', 'should', 'to', 'only', 'under', 'ours', 'has', 'do', 'them', 'his', 'very', 'they', 'not', 'during', 'now', 'him', 'nor', 'did', 'this', 'she', 'each', 'further', 'where', 'few', 'because', 'doing', 'some', 'are', 'our', 'ourselves', 'out', 'what', 'for', 'while', 'does', 'above', 'between', 't', 'be', 'we', 'who', 'were', 'here', 'hers', 'by', 'on', 'about', 'of', 'against', 's', 'or', 'own', 'into', 'yourself', 'down', 'your', 'from', 'her', 'their', 'there', 'been', 'whom', 'too', 'themselves', 'was', 'until', 'more', 'himself', 'that', 'but', 'don', 'with', 'than', 'those', 'he', 'me', 'myself', 'these', 'up', 'will', 'below', 'can', 'theirs', 'my', 'and', 'then', 'is', 'am', 'it', 'an', 'as', 'itself', 'at', 'have', 'in', 'any', 'if', 'again', 'no', 'when', 'same', 'how', 'other', 'which', 'you', 'after', 'most', 'such', 'why', 'a', 'off', 'i', 'yours', 'so', 'the', 'having', 'once']
+
+def get_request(path, params=None):
+    """
+    Given a path, e.g. '/v1/me/' and params, return the response in json form.
+    Take a look at https://developers.pinterest.com/docs/getting-started/introduction/
+    to see what endpoints the Pinterest API has available!
+
+    You may request additional parameters by overriding the params method
+    """
+    if params:
+        params.update({'access_token': ACCESS_TOKEN})
+    else:
+        params = {'access_token': ACCESS_TOKEN}
+    url = "%s%s?%s" % (BASE_API, path, urllib.urlencode(params))
+    result = urllib2.urlopen(url)
+    response_data = result.read()
+    return json.loads(response_data)
+
+
+def top_n_words(board_id, top_N):
+    # TODO: Implement this!
+    path = "/v1/boards/" + str(board_id) + "/pins"
+    notesWods = {}
+    response = get_request(path)
+
+    while True:
+            for i in range(len(response['data'])):
+
+                s1 = re.sub('[^a-zA-Z\-\']+', ' ', response['data'][i]['note'])
+
+                charS = s1.lower()
+                charL = charS.split(" ")
+                tempC = [w for w in charL if w not in NLTK_STOPWORDS]
+                for item in tempC:
+                    if len(item) <= 2:
+                        continue
+                    if item not in notesWods:
+                         notesWods[item] = 0
+                    notesWods[item] +=1
+
+            cursor = response['page']["next"]
+            if cursor is None:
+                break
+            nextPage = urllib2.urlopen(cursor)
+            response_content = nextPage.read()
+            response = json.loads(response_content)
+
+
+
+
+
+    listsItem = notesWods.items()
+    listsItem.sort(lambda x,y : cmp(y[1],x[1]))
+
+    sets = set()
+    if len(listsItem) <= top_N:
+        top_N = len(listsItem)
+    for i in range(top_N):
+        sets.add(listsItem[i])
+        while i +1 < len(listsItem) and listsItem[i][1] == listsItem[i+1][1]:
+            i = i + 1
+            sets.add(listsItem[i])
+    return sets
+
+
+
+board_id = 785174584973334870
+print top_n_words(board_id,5)
