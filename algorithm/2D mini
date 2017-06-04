@@ -1,5 +1,7 @@
 
 #思路就是先排两次序，然后扫一遍，如果出现了有一个point 比其他的point比随后的一个point要来的小，就终止
+
+#update1: 改变等号，改变for循环下的i  9个testcase 只能过5个
 import sys
 
 n = int(raw_input().strip())
@@ -15,11 +17,11 @@ p_sorted2 = sorted(p,key = lambda x:(x[1],x[0]))
 signal = False
 res = set()
 for i in range(len(p_sorted1)-1):
-  res.add(p_sorted1[0])
-  if p_sorted1[i][0] <= p_sorted1[i+1][0] and p_sorted1[i][1] <= p_sorted1[i+1][1]:
+  res.add(p_sorted1[i])
+  if p_sorted1[i][0] == p_sorted1[i+1][0] and p_sorted1[i][1] <= p_sorted1[i+1][1]:
      break
 for i in range(len(p_sorted2)-1):
-  res.add(p_sorted2[0])
-  if p_sorted2[i][0] <= p_sorted2[i+1][0] and p_sorted2[i][1] <= p_sorted2[i+1][1]:
+  res.add(p_sorted2[i])
+  if p_sorted2[i][0] <= p_sorted2[i+1][0] and p_sorted2[i][1] == p_sorted2[i+1][1]:
      break
 print len(res)
